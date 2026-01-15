@@ -81,7 +81,7 @@ class OilDubaiDailyBatchOut:
                     .replace("+", "")
                 )
 
-                data.append(["OIL_DUBAI", date, change_amount, round(rate, 4), close])
+                data.append(["DUBAI", date, change_amount, round(rate, 4), close])
 
             return pd.DataFrame(
                 data,
