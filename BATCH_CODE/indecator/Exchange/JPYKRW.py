@@ -13,7 +13,7 @@ from datetime import datetime
 import os
 
 from BATCH_CODE.common import config
-from BATCH_CODE.indecator.indicator_common_flie_saver import append_indicator_row
+from BATCH_CODE.indecator.exchange_common_flie_saver import append_indicator_row
 
 
 class FXDailyBatchOut:
@@ -46,17 +46,17 @@ class FXDailyBatchOut:
 
 
     # -------------------------------------------------
-    # 1) USD/KRW 한 페이지 수집
+    # 1) JPYKRW 한 페이지 수집
     # -------------------------------------------------
-    def read_fx_usdkrw(self, page):
+    def read_fx_JPYKRW(self, page):
         url = (
             "https://finance.naver.com/marketindex/exchangeDailyQuote.naver"
-            f"?marketindexCd=FX_USDKRW&page={page}"
+            f"?marketindexCd=FX_JPYKRW&page={page}"
         )
 
         headers = {
             "User-Agent": "Mozilla/5.0",
-            "Referer": "https://finance.naver.com/marketindex/exchangeDetail.naver?marketindexCd=FX_USDKRW"
+            "Referer": "https://finance.naver.com/marketindex/exchangeDetail.naver?marketindexCd=FX_JPYKRW"
         }
 
         html = requests.get(url, headers=headers).text
@@ -95,7 +95,7 @@ class FXDailyBatchOut:
             change_rate = (change_amount / (close - change_amount)) * 100 if close != change_amount else 0
 
             data.append([
-                "USD",
+                "JPYKRW",
                 f"{date} 00:00:00",
                 close,
                 change_amount,
@@ -114,8 +114,8 @@ class FXDailyBatchOut:
         frames = []
 
         for page in range(1, self.pages_to_fetch + 1):
-            print(f"[INFO] USDKRW page {page}/{self.pages_to_fetch}")
-            df = self.read_fx_usdkrw(page)
+            print(f"[INFO] JPYKRW page {page}/{self.pages_to_fetch}")
+            df = self.read_fx_JPYKRW(page)
             if df.empty:
                 break
             frames.append(df)
@@ -126,8 +126,10 @@ class FXDailyBatchOut:
         df_all = pd.concat(frames, ignore_index=True)
         df_all = df_all.sort_values("date", ascending=False)
 
+        # TODO: 현재는 최신 1건만 반환. 제한 풀려면 head(1) 제거하고 전체 반환
         # 🔥 최신 1일만
-        return df_all.head(1)
+        # return df_all.head(1)
+        return df_all.copy()
 
     # -------------------------------------------------
     # 3) TXT 저장
@@ -145,13 +147,13 @@ class FXDailyBatchOut:
 
         write_header = not os.path.exists(txt_path)
 
-        with open(txt_path, "a", encoding=ENCODING) as f:
+        with open(txt_path, "a", encoding="utf-8") as f:
             if write_header:
                 f.write(self.DELIMITER.join(fields) + "\n")
 
             for idx, r in df.iterrows():
                 row = [
-                    r["code"],  # USD
+                    r["code"],  # JPYKRW
                     r["date"],  # YYYY-MM-DD 00:00:00
                     r["change_amount"],
                     r["change_rate"],
@@ -161,7 +163,7 @@ class FXDailyBatchOut:
                 f.write(self.DELIMITER.join(map(str, row)) + "\n")
 
                 tmnow = datetime.now().strftime("%Y-%m-%d %H:%M")
-                print(f"[{tmnow}] #{idx + 1:04d} USD > WRITE INDICATOR OK")
+                print(f"[{tmnow}] #{idx + 1:04d} JPYKRW > WRITE INDICATOR OK")
 
         print(f"[OK] DAILY_PRICE_INDICATOR TXT append 완료")
         print(f"ROWCOUNT={len(df)}")
@@ -171,7 +173,7 @@ class FXDailyBatchOut:
     # 4) 실행
     # -------------------------------------------------
     def execute(self):
-        print("[INFO] USD/KRW Batch-Out 시작")
+        print("[INFO] JPYKRW Batch-Out 시작")
         df = self.collect_latest()
 
         if df.empty:
@@ -180,7 +182,7 @@ class FXDailyBatchOut:
 
         for idx, r in df.iterrows():
             append_indicator_row(
-                code=r["code"],  # "USD"
+                code=r["code"],  # "JPYKRW"
                 date=r["date"],  # "YYYY-MM-DD 00:00:00"
                 change_amount=r["change_amount"],
                 change_rate=r["change_rate"],
@@ -188,7 +190,7 @@ class FXDailyBatchOut:
             )
 
             tmnow = datetime.now().strftime("%Y-%m-%d %H:%M")
-            print(f"[{tmnow}] #{idx + 1:04d} USD > WRITE INDICATOR OK")
+            print(f"[{tmnow}] #{idx + 1:04d} JPYKRW > WRITE INDICATOR OK")
 
         print("[OK] DAILY_PRICE_INDICATOR TXT append 완료")
         print(f"ROWCOUNT={len(df)}")

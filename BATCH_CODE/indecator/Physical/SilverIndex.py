@@ -13,14 +13,16 @@ from datetime import datetime
 import os
 
 from BATCH_CODE.common import config
-from BATCH_CODE.indecator.indicator_common_flie_saver import append_indicator_row
+from BATCH_CODE.indecator.physical_common_flie_saver import append_indicator_row
 
-class GoldKRWDailyBatchOut:
+
+class SILVERDailyBatchOut:
     def __init__(self):
         # ------------------------------------------
         # 공용 config.json 로드 (env 기반)
         # ------------------------------------------
         config_path = os.getenv("COMMON_CONFIG_PATH")
+
         if not config_path:
             raise RuntimeError("COMMON_CONFIG_PATH not set")
 
@@ -33,15 +35,18 @@ class GoldKRWDailyBatchOut:
         except FileNotFoundError:
             raise RuntimeError(f"[FATAL] config.json not found: {config_path}")
 
-        print(f"[INFO] GOLD_KR pages_to_fetch = {self.pages_to_fetch}")
+        print(f"[INFO] SILVER pages_to_fetch = {self.pages_to_fetch}")
 
 
     # ------------------------------------------------------------------
-    # 1) 국내 금 시세 한 페이지 수집
+    # 1) 국제 금(SILVER) 일별 시세 한 페이지 수집
     # ------------------------------------------------------------------
-    def read_gold_krw_page(self, page=1):
+    def read_SILVER_daily(self, page=1):
         try:
-            url = f"https://finance.naver.com/marketindex/goldDailyQuote.naver?page={page}"
+            url = (
+                "https://finance.naver.com/marketindex/worldDailyQuote.naver"
+                f"?marketindexCd=CMDT_SI&fdtc=2&page={page}"
+            )
             headers = {"User-Agent": "Mozilla/5.0"}
 
             html = requests.get(url, headers=headers).text
@@ -52,49 +57,33 @@ class GoldKRWDailyBatchOut:
 
             for row in rows:
                 cols = row.find_all("td")
-                if len(cols) < 3:
+                if len(cols) < 4:
                     continue
 
-                # 날짜
-                date_raw = cols[0].text.strip()
+                date_raw = cols[0].get_text(strip=True)
                 if date_raw.count(".") != 2:
                     continue
                 date = date_raw.replace(".", "-") + " 00:00:00"
 
-                # 종가
-                close_raw = cols[1].text.strip().replace(",", "")
-                if not close_raw:
-                    continue
-                close = float(close_raw)
+                close = float(cols[1].get_text(strip=True).replace(",", ""))
 
-                # 전일 대비
                 diff_td = cols[2]
                 sign = 1
                 img = diff_td.find("img")
                 if img and "하락" in img.get("alt", ""):
                     sign = -1
 
-                diff_text = (
-                    diff_td.get_text(strip=True)
-                    .replace("상승", "")
-                    .replace("하락", "")
-                    .replace(",", "")
-                )
-
-                m = re.search(r"-?\d+\.?\d*", diff_text)
+                m = re.search(r"-?\d+\.?\d*", diff_td.get_text(strip=True))
                 if not m:
                     continue
-
                 change_amount = sign * float(m.group())
 
-                # 등락률 계산
-                if close != change_amount:
-                    change_rate = (change_amount / (close - change_amount)) * 100
-                else:
-                    change_rate = 0.0
+                rate_raw = cols[3].get_text(strip=True)
+                rate_raw = rate_raw.replace("%", "").replace("+", "").replace(",", "")
+                change_rate = float(rate_raw)
 
                 data.append([
-                    "GOLD_KR",
+                    "SILVER",
                     date,
                     change_amount,
                     round(change_rate, 4),
@@ -107,7 +96,7 @@ class GoldKRWDailyBatchOut:
             )
 
         except Exception as e:
-            print("[ERROR] GOLD_KR page error:", e)
+            print("[ERROR] SILVER page error:", e)
             return pd.DataFrame()
 
     # ------------------------------------------------------------------
@@ -117,9 +106,9 @@ class GoldKRWDailyBatchOut:
         frames = []
 
         for page in range(1, self.pages_to_fetch + 1):
-            print(f"[INFO] GOLD_KR page {page}/{self.pages_to_fetch}", end="\r")
+            print(f"[INFO] SILVER page {page}/{self.pages_to_fetch}", end="\r")
 
-            df = self.read_gold_krw_page(page)
+            df = self.read_SILVER_daily(page)
             if df.empty:
                 break
 
@@ -131,39 +120,40 @@ class GoldKRWDailyBatchOut:
         df_all = pd.concat(frames, ignore_index=True)
         df_all = df_all.sort_values("date", ascending=False)
 
-        # 최신 1일만
-        return df_all.head(1)
+        # 🔥 최신 1일만
+        # return df_all.head(1)
+        return df_all.copy()
 
     # ------------------------------------------------------------------
-    # 3) TXT append (공통 writer)
+    # 3) TXT append (공통 writer 사용)
     # ------------------------------------------------------------------
     def write_indicator(self, df):
         for idx, r in df.iterrows():
             append_indicator_row(
-                code=r["code"],          # GOLD_KR
-                date=r["date"],          # YYYY-MM-DD 00:00:00
+                code=r["code"],              # SILVER
+                date=r["date"],              # YYYY-MM-DD 00:00:00
                 change_amount=r["change_amount"],
                 change_rate=r["change_rate"],
                 close=r["close"]
             )
 
             tmnow = datetime.now().strftime("%Y-%m-%d %H:%M")
-            print(f"[{tmnow}] #{idx + 1:04d} GOLD_KR > WRITE TXT OK")
+            print(f"[{tmnow}] #{idx + 1:04d} SILVER > WRITE TXT OK")
 
     # ------------------------------------------------------------------
     # 4) 실행
     # ------------------------------------------------------------------
     def execute(self):
-        print("[INFO] GOLD_KR Batch-Out 시작")
+        print("[INFO] SILVER Batch-Out 시작")
         df = self.collect_latest()
 
         if df.empty:
-            print("[WARN] GOLD_KR 데이터 없음")
+            print("[WARN] SILVER 데이터 없음")
             return
 
         self.write_indicator(df)
-        print("[INFO] GOLD_KR Batch-Out 완료")
+        print("[INFO] SILVER Batch-Out 완료")
 
 
 if __name__ == "__main__":
-    GoldKRWDailyBatchOut().execute()
+    SILVERDailyBatchOut().execute()

@@ -1,3 +1,4 @@
+# 구리
 # ============================================================
 # 0. 프로젝트 루트 설정 + import 경로 등록 (가장 먼저!)
 # ============================================================
@@ -19,10 +20,10 @@ from datetime import datetime
 import os
 
 from BATCH_CODE.common import config   # 🔥 여기서 env 로딩 완료
-from BATCH_CODE.indecator.indicator_common_flie_saver import append_indicator_row
+from BATCH_CODE.indecator.physical_common_flie_saver import append_indicator_row
 
 
-class OilDubaiDailyBatchOut:
+class COPPERDailyBatchOut:
     def __init__(self):
         # ------------------------------------------
         # 공용 config.json 로드
@@ -40,14 +41,14 @@ class OilDubaiDailyBatchOut:
         except FileNotFoundError:
             raise RuntimeError(f"[FATAL] config.json not found: {config_path}")
 
-        print(f"[INFO] DUBAI pages_to_fetch = {self.pages_to_fetch}")
+        print(f"[INFO] COPPER pages_to_fetch = {self.pages_to_fetch}")
 
     # -------------------------------------------------
-    def read_oil_dubai_page(self, page=1):
+    def read_COPPER_page(self, page=1):
         try:
             url = (
                 "https://finance.naver.com/marketindex/worldDailyQuote.naver"
-                f"?marketindexCd=OIL_DU&fdtc=2&page={page}"
+                f"?marketindexCd=CMDT_CDY&fdtc=2&page={page}"
             )
             headers = {"User-Agent": "Mozilla/5.0"}
             soup = BeautifulSoup(requests.get(url, headers=headers).text, "lxml")
@@ -81,7 +82,7 @@ class OilDubaiDailyBatchOut:
                     .replace("+", "")
                 )
 
-                data.append(["DUBAI", date, change_amount, round(rate, 4), close])
+                data.append(["COPPER", date, change_amount, round(rate, 4), close])
 
             return pd.DataFrame(
                 data,
@@ -89,14 +90,14 @@ class OilDubaiDailyBatchOut:
             )
 
         except Exception as e:
-            print("[ERROR] OIL_DUBAI page error:", e)
+            print("[ERROR] COPPER page error:", e)
             return pd.DataFrame()
 
     # -------------------------------------------------
     def collect_latest(self):
         frames = []
         for page in range(1, self.pages_to_fetch + 1):
-            df = self.read_oil_dubai_page(page)
+            df = self.read_COPPER_page(page)
             if df.empty:
                 break
             frames.append(df)
@@ -107,12 +108,12 @@ class OilDubaiDailyBatchOut:
         return (
             pd.concat(frames, ignore_index=True)
               .sort_values("date", ascending=False)
-              .head(1)
+              # .head(1)
         )
 
     # -------------------------------------------------
     def execute(self):
-        print("[INFO] OIL_DUBAI Batch-Out 시작")
+        print("[INFO] COPPER Batch-Out 시작")
         df = self.collect_latest()
 
         if df.empty:
@@ -128,8 +129,8 @@ class OilDubaiDailyBatchOut:
                 close=r["close"]
             )
 
-        print("[INFO] OIL_DUBAI Batch-Out 완료")
+        print("[INFO] COPPER Batch-Out 완료")
 
 
 if __name__ == "__main__":
-    OilDubaiDailyBatchOut().execute()
+    COPPERDailyBatchOut().execute()

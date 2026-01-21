@@ -1,3 +1,7 @@
+# 달러 대비 엔화 지수
+## 원화 대비 엔화 지수로 변경했으므로 더이상 수집 안함.
+### 결론적으로 2026.01.08 이후로 사용 안하는 코드.
+
 import sys
 from pathlib import Path
 
@@ -115,6 +119,7 @@ class USDJPYDailyBatchOut:
 
         # 최신 1일만
         return df_all.head(1)
+        #return df_all.copy()
 
 
     # -------------------------------------------------

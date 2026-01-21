@@ -1,3 +1,4 @@
+## KOSPI
 import sys
 from pathlib import Path
 
@@ -13,9 +14,9 @@ from datetime import datetime
 import os
 
 from BATCH_CODE.common import config
-from BATCH_CODE.indecator.indicator_common_flie_saver import append_indicator_row
+from BATCH_CODE.indecator.stockIndex_common_flie_saver import append_indicator_row
 
-class KOSPIDDailyBatchOut:
+class KSPDDailyBatchOut:
     def __init__(self):
         # =============================
         # ENV 기반 설정
@@ -30,13 +31,13 @@ class KOSPIDDailyBatchOut:
             config = json.load(f)
             self.pages_to_fetch = config.get("pages_to_fetch", 1)
 
-        print(f"[INFO] KOSPI pages_to_fetch={self.pages_to_fetch}")
+        print(f"[INFO] KSP pages_to_fetch={self.pages_to_fetch}")
 
 
     # ---------------------------------------------------------------------
-    # 1) KOSPI 단일 페이지 수집
+    # 1) KSP 단일 페이지 수집
     # ---------------------------------------------------------------------
-    def read_kospi_page(self, page):
+    def read_KSP_page(self, page):
         try:
             url = f"https://finance.naver.com/sise/sise_index_day.naver?code=KOSPI&page={page}"
             html = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}).text
@@ -51,9 +52,9 @@ class KOSPIDDailyBatchOut:
         frames = []
 
         for page in range(1, self.pages_to_fetch + 1):
-            print(f"[INFO] KOSPI {page}/{self.pages_to_fetch} 페이지 수집", end="\r")
+            print(f"[INFO] KSP {page}/{self.pages_to_fetch} 페이지 수집", end="\r")
 
-            df = self.read_kospi_page(page)
+            df = self.read_KSP_page(page)
             if df.empty:
                 break
 
@@ -98,7 +99,9 @@ class KOSPIDDailyBatchOut:
         df = df.sort_values("date", ascending=False)
 
         # 🔥 최신 1일만
-        return df.head(1)
+        # return df.head(1)
+
+        return df.copy()
 
     # ---------------------------------------------------------------------
     # 3) TXT로 append
@@ -106,7 +109,7 @@ class KOSPIDDailyBatchOut:
     def write_indicator(self, df):
         for idx, r in df.iterrows():
             append_indicator_row(
-                code="KOSPI",
+                code="KSP",
                 date=r["date"],
                 change_amount=r["change_amount"],
                 change_rate=r["change_rate"],
@@ -114,22 +117,22 @@ class KOSPIDDailyBatchOut:
             )
 
             tmnow = datetime.now().strftime("%Y-%m-%d %H:%M")
-            print(f"[{tmnow}] #{idx+1:04d} KOSPI > WRITE TXT OK")
+            print(f"[{tmnow}] #{idx+1:04d} KSP > WRITE TXT OK")
 
     # ---------------------------------------------------------------------
     # 4) 실행
     # ---------------------------------------------------------------------
     def execute(self):
-        print("[INFO] KOSPI Batch-Out 시작")
+        print("[INFO] KSP Batch-Out 시작")
         df = self.collect_latest()
 
         if df.empty:
-            print("[WARN] KOSPI 데이터 없음")
+            print("[WARN] KSP 데이터 없음")
             return
 
         self.write_indicator(df)
-        print("[INFO] KOSPI Batch-Out 완료")
+        print("[INFO] KSP Batch-Out 완료")
 
 
 if __name__ == "__main__":
-    KOSPIDDailyBatchOut().execute()
+    KSPDDailyBatchOut().execute()

@@ -13,15 +13,16 @@ from datetime import datetime
 import os
 
 from BATCH_CODE.common import config
-from BATCH_CODE.indecator.indicator_common_flie_saver import append_indicator_row
+from BATCH_CODE.indecator.physical_common_flie_saver import append_indicator_row
 
 
-class OilWTIDailyBatchOut:
+class RICEDailyBatchOut:
     def __init__(self):
         # ------------------------------------------
         # 공용 config.json 로드 (env 기반)
         # ------------------------------------------
         config_path = os.getenv("COMMON_CONFIG_PATH")
+
         if not config_path:
             raise RuntimeError("COMMON_CONFIG_PATH not set")
 
@@ -34,17 +35,17 @@ class OilWTIDailyBatchOut:
         except FileNotFoundError:
             raise RuntimeError(f"[FATAL] config.json not found: {config_path}")
 
-        print(f"[INFO] WTI pages_to_fetch = {self.pages_to_fetch}")
+        print(f"[INFO] RICE pages_to_fetch = {self.pages_to_fetch}")
 
 
-    # ----------------------------------------------------------------
-    # 1) WTI 단일 페이지 수집
-    # ----------------------------------------------------------------
-    def read_oil_wti_page(self, page=1):
+    # ------------------------------------------------------------------
+    # 1) 국제 금(RICE) 일별 시세 한 페이지 수집
+    # ------------------------------------------------------------------
+    def read_RICE_daily(self, page=1):
         try:
             url = (
                 "https://finance.naver.com/marketindex/worldDailyQuote.naver"
-                f"?marketindexCd=OIL_CL&fdtc=2&page={page}"
+                f"?marketindexCd=CMDT_RR&fdtc=2&page={page}"
             )
             headers = {"User-Agent": "Mozilla/5.0"}
 
@@ -78,11 +79,11 @@ class OilWTIDailyBatchOut:
                 change_amount = sign * float(m.group())
 
                 rate_raw = cols[3].get_text(strip=True)
-                rate_raw = rate_raw.replace("%", "").replace(",", "").replace("+", "")
+                rate_raw = rate_raw.replace("%", "").replace("+", "").replace(",", "")
                 change_rate = float(rate_raw)
 
                 data.append([
-                    "WTI",
+                    "RICE",
                     date,
                     change_amount,
                     round(change_rate, 4),
@@ -95,19 +96,19 @@ class OilWTIDailyBatchOut:
             )
 
         except Exception as e:
-            print("[ERROR] WTI page error:", e)
+            print("[ERROR] RICE page error:", e)
             return pd.DataFrame()
 
-    # ----------------------------------------------------------------
+    # ------------------------------------------------------------------
     # 2) 여러 페이지 수집
-    # ----------------------------------------------------------------
+    # ------------------------------------------------------------------
     def collect_latest(self):
         frames = []
 
         for page in range(1, self.pages_to_fetch + 1):
-            print(f"[INFO] WTI page {page}/{self.pages_to_fetch}", end="\r")
+            print(f"[INFO] RICE page {page}/{self.pages_to_fetch}", end="\r")
 
-            df = self.read_oil_wti_page(page)
+            df = self.read_RICE_daily(page)
             if df.empty:
                 break
 
@@ -120,38 +121,39 @@ class OilWTIDailyBatchOut:
         df_all = df_all.sort_values("date", ascending=False)
 
         # 🔥 최신 1일만
-        return df_all.head(1)
+        # return df_all.head(1)
+        return df_all.copy()
 
-    # ----------------------------------------------------------------
-    # 3) TXT append (공통 writer)
-    # ----------------------------------------------------------------
+    # ------------------------------------------------------------------
+    # 3) TXT append (공통 writer 사용)
+    # ------------------------------------------------------------------
     def write_indicator(self, df):
         for idx, r in df.iterrows():
             append_indicator_row(
-                code=r["code"],          # WTI
-                date=r["date"],          # YYYY-MM-DD 00:00:00
+                code=r["code"],              # RICE
+                date=r["date"],              # YYYY-MM-DD 00:00:00
                 change_amount=r["change_amount"],
                 change_rate=r["change_rate"],
                 close=r["close"]
             )
 
             tmnow = datetime.now().strftime("%Y-%m-%d %H:%M")
-            print(f"[{tmnow}] #{idx + 1:04d} WTI > WRITE TXT OK")
+            print(f"[{tmnow}] #{idx + 1:04d} RICE > WRITE TXT OK")
 
-    # ----------------------------------------------------------------
+    # ------------------------------------------------------------------
     # 4) 실행
-    # ----------------------------------------------------------------
+    # ------------------------------------------------------------------
     def execute(self):
-        print("[INFO] WTI Batch-Out 시작")
+        print("[INFO] RICE Batch-Out 시작")
         df = self.collect_latest()
 
         if df.empty:
-            print("[WARN] WTI 데이터 없음")
+            print("[WARN] RICE 데이터 없음")
             return
 
         self.write_indicator(df)
-        print("[INFO] WTI Batch-Out 완료")
+        print("[INFO] RICE Batch-Out 완료")
 
 
 if __name__ == "__main__":
-    OilWTIDailyBatchOut().execute()
+    RICEDailyBatchOut().execute()

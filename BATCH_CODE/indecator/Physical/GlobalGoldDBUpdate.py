@@ -13,7 +13,7 @@ from datetime import datetime
 import os
 
 from BATCH_CODE.common import config
-from BATCH_CODE.indecator.indicator_common_flie_saver import append_indicator_row
+from BATCH_CODE.indecator.physical_common_flie_saver import append_indicator_row
 
 
 class GoldGlobalDailyBatchOut:
@@ -121,7 +121,8 @@ class GoldGlobalDailyBatchOut:
         df_all = df_all.sort_values("date", ascending=False)
 
         # 🔥 최신 1일만
-        return df_all.head(1)
+        #return df_all.head(1)
+        return df_all.copy()
 
     # ------------------------------------------------------------------
     # 3) TXT append (공통 writer 사용)
