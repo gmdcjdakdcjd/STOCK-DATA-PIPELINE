@@ -1,7 +1,10 @@
 # Python 배치 전용 이미지
-FROM python:3.10-slim
+FROM python:3.9-slim
 
-ENV TZ=Asia/Seoul
+ENV TZ=Asia/Seoul \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONPATH=/workspace
 
 WORKDIR /workspace
 
@@ -17,7 +20,7 @@ COPY requirements.txt .
 RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 이거 추가
 COPY . .
 
-CMD ["sleep", "infinity"]
+# ❌ CMD 제거
+# 실행은 docker-compose에서 담당
