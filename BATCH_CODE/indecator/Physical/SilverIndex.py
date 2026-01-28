@@ -1,7 +1,7 @@
 import sys
 from pathlib import Path
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]  # /workspace
+PROJECT_ROOT = Path(__file__).resolve().parents[3]  # /workspace
 sys.path.insert(0, str(PROJECT_ROOT))
 
 import json
@@ -120,9 +120,9 @@ class SILVERDailyBatchOut:
         df_all = pd.concat(frames, ignore_index=True)
         df_all = df_all.sort_values("date", ascending=False)
 
-        # 🔥 최신 1일만
-        # return df_all.head(1)
-        return df_all.copy()
+        # 최신 1일만
+        return df_all.head(1)
+        # return df_all.copy()
 
     # ------------------------------------------------------------------
     # 3) TXT append (공통 writer 사용)

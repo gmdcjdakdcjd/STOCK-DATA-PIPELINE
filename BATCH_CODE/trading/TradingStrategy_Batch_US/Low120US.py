@@ -39,7 +39,7 @@ strategy_name = "DAILY_120D_NEW_LOW_US"
 df_all = mk.get_all_daily_prices(start_date, latest_trade_date)
 
 if df_all.empty:
-    print("\n⚠ 전체 가격 데이터 없음 — 종료")
+    print("\n전체 가격 데이터 없음 — 종료")
     exit()
 
 df_all["date"] = pd.to_datetime(df_all["date"])
@@ -66,9 +66,9 @@ for code, group in df_all.groupby("code"):
 
     # 오늘 처음 120일 신저가 + 가격 조건
     if (
-        last["close"] >= 10
-        and last["close"] <= last["LOW_120_CLOSE"]
-        and prev["close"] > prev["LOW_120_CLOSE"]
+            last["close"] == last["LOW_120_CLOSE"]
+            and prev["close"] > prev["LOW_120_CLOSE"]
+            and last["close"] >= 15
     ):
         diff = round(((last["close"] - prev["close"]) / prev["close"]) * 100, 2)
 
@@ -89,7 +89,7 @@ for code, group in df_all.groupby("code"):
 if low_list:
 
     df_low = pd.DataFrame(low_list).sort_values(by="close")
-    print("\n📉 [US] 120일 종가 신저가 첫 발생 종목\n")
+    print("\n[US] 120일 종가 신저가 첫 발생 종목\n")
     print(df_low.to_string(index=False))
     print(f"\n총 {len(df_low)}건 감지됨.\n")
 
@@ -116,7 +116,7 @@ if low_list:
             result_id=result_id
         )
 
-    print(f"\n⚡ TXT 생성 완료 → RESULT_ID = {result_id}, ROWCOUNT = {len(df_low)}\n")
+    print(f"\nTXT 생성 완료 → RESULT_ID = {result_id}, ROWCOUNT = {len(df_low)}\n")
 
 else:
-    print("\n😴 120일 종가 신저가 첫 발생 종목 없음 — 저장 생략\n")
+    print("\n120일 종가 신저가 첫 발생 종목 없음 — 저장 생략\n")

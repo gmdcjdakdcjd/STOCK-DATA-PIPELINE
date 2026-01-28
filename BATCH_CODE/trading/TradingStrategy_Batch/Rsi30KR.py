@@ -34,6 +34,7 @@ today = datetime.now().strftime("%Y%m%d")
 
 strategy_name = "RSI_30_UNHEATED_KR"
 
+
 # =======================================================
 # 2. RSI 계산 함수
 # =======================================================
@@ -56,7 +57,7 @@ def compute_rsi(series, period=14):
 df_all = mk.get_all_daily_prices(start_date, today_str)
 
 if df_all.empty:
-    print("⚠ 전체 가격 데이터 없음")
+    print("전체 가격 데이터 없음")
     exit()
 
 # date 처리 + index 세팅은 여기서 한 번만
@@ -90,7 +91,12 @@ for code, group in df_all.groupby("code"):
     rate = round(((last["close"] - prev["close"]) / prev["close"]) * 100, 2)
 
     # 조건: RSI 30 이하 + 종가 10,000 이상
-    if last["rsi"] <= 30 and last["close"] >= 10000:
+    if (
+            last["rsi"] <= 30 and
+            last["close"] >= 10000 and
+            not pd.isna(last["volume"]) and
+            last["volume"] > 0
+    ):
         rsi_candidates.append({
             "code": code,
             "name": mk.codes.get(code, "UNKNOWN"),
@@ -101,7 +107,6 @@ for code, group in df_all.groupby("code"):
             "volume": float(last.get("volume", 0)),
             "special_value": round(float(last["rsi"]), 2)  # RSI 값
         })
-
 
 # =======================================================
 # 5. TXT 저장

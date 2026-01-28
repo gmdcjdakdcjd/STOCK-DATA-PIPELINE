@@ -31,9 +31,20 @@ class MarketDB:
     # =====================================================================
     def get_etf_info(self):
         sql = text("""
-            SELECT code, name
-            FROM etf_info_us
-            WHERE issuer = 'BlackRock (iShares)'
+            SELECT ci.code, ci.name
+            FROM etf_info_us ci
+            WHERE ci.issuer = 'BlackRock (iShares)'
+              AND EXISTS (
+                  SELECT 1
+                  FROM etf_daily_price_us dp
+                  WHERE dp.code = ci.code
+                    AND dp.volume > 0
+                    AND dp.date = (
+                        SELECT MAX(date)
+                        FROM etf_daily_price_us
+                        WHERE code = ci.code
+                    )
+              )
         """)
 
         with self.engine.connect() as conn:

@@ -39,7 +39,7 @@ strategy_name = "ETF_TOP20_VOLUME_KR"
 df_all = mk.get_all_daily_prices(start_date, today_str)
 
 if df_all.empty:
-    print("\n⚠ 전체 가격 데이터 없음 — 종료")
+    print("\n전체 가격 데이터 없음 — 종료")
     exit()
 
 df_all["date"] = pd.to_datetime(df_all["date"])
@@ -87,7 +87,7 @@ if volume_list:
         .head(20)
     )
 
-    print("\n📊 [KR ETF] 거래량 TOP20 리스트\n")
+    print("\n[KR ETF] 거래량 TOP20 리스트\n")
     print(df_final.to_string(index=False))
     print(f"\n총 {len(df_final)}건 감지됨.\n")
 
@@ -117,13 +117,13 @@ if volume_list:
             price=row["close"],
             diff=row["diff"],
             volume=row["volume"],
-            special_value=rank,     # ⭐ 거래량 순위
+            special_value=rank,     # 거래량 순위
             result_id=result_id
         )
 
-    print("\n⚡ TXT 저장 완료")
+    print("\nTXT 저장 완료")
     print(f"RESULT_ID = {result_id}")
     print(f"ROWCOUNT  = {len(df_final)}\n")
 
 else:
-    print("\n😴 KR ETF 거래량 TOP20 없음 — 저장 생략\n")
+    print("\nKR ETF 거래량 TOP20 없음 — 저장 생략\n")

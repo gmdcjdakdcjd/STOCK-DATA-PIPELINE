@@ -40,7 +40,7 @@ strategy_name = "DAILY_TOUCH_MA60_US"
 df_all = mk.get_all_daily_prices(start_date, latest_trade_date)
 
 if df_all.empty:
-    print("\n⚠ 전체 가격 데이터 없음 — 종료")
+    print("\n전체 가격 데이터 없음 — 종료")
     exit()
 
 df_all["date"] = pd.to_datetime(df_all["date"])
@@ -73,7 +73,7 @@ for code, group in df_all.groupby("code"):
     touch_rate = ((last["close"] - prev["MA60"]) / prev["MA60"]) * 100
 
     # MA60 ±1% 터치 + 종가 ≥ $10
-    if -1.0 <= touch_rate <= 1.0 and last["close"] >= 10:
+    if -1.0 <= touch_rate <= 1.0 and last["close"] >= 15:
         touch_list.append({
             "code": code,
             "name": mk.code_to_name.get(code, "UNKNOWN"),
@@ -91,7 +91,7 @@ for code, group in df_all.groupby("code"):
 if touch_list:
 
     df_touch = pd.DataFrame(touch_list).sort_values(by="diff")
-    print("\n📊 [US] 일봉 60일선 터치 종목\n")
+    print("\n[US] 일봉 60일선 터치 종목\n")
     print(df_touch.to_string(index=False))
     print(f"\n총 {len(df_touch)}건 감지됨.\n")
 
@@ -118,7 +118,7 @@ if touch_list:
             result_id=result_id
         )
 
-    print(f"\n⚡ TXT 생성 완료 → RESULT_ID = {result_id}, ROWCOUNT = {len(df_touch)}\n")
+    print(f"\nTXT 생성 완료 → RESULT_ID = {result_id}, ROWCOUNT = {len(df_touch)}\n")
 
 else:
-    print("\n💤 [US] 60일선 터치 종목 없음 — 저장 생략\n")
+    print("\n[US] 60일선 터치 종목 없음 — 저장 생략\n")

@@ -139,7 +139,7 @@ class NpsPortfolioBatchOut:
 
         file_path = os.path.join(
             out_dir,
-            f"NPS_PORTFOLIO_{self.BASE_DATE}.txt"
+            f"NPS_PORTFOLIO_HEADER_{self.BASE_DATE}.txt"
         )
 
         header_map = defaultdict(int)

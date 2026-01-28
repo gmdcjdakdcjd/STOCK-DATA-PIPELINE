@@ -39,7 +39,7 @@ strategy_name = "DAILY_DROP_SPIKE_KR"
 df_all = mk.get_all_daily_prices(start_date, today_str)
 
 if df_all.empty:
-    print("\n⚠ 전체 가격 데이터 없음 — 종료")
+    print("\n전체 가격 데이터 없음 종료")
     exit()
 
 # 필요한 종목만 필터링 (우량 필터)
@@ -61,7 +61,7 @@ for code, group in df_all.groupby("code"):
 
     rate = ((last["close"] - prev["close"]) / prev["close"]) * 100
 
-    if rate <= -7 and last["close"] >= 10000:
+    if rate <= -5 and last["close"] >= 10000:
         drop_candidates.append({
             "code": code,
             "name": mk.codes.get(code, "UNKNOWN"),
@@ -79,7 +79,7 @@ if drop_candidates:
 
     df_drop = pd.DataFrame(drop_candidates).sort_values(by="rate", ascending=True)
 
-    print("\n[일봉] 전일 대비 7% 이상 하락 종목\n")
+    print("\n[일봉] 전일 대비 5% 이상 하락 종목\n")
     print(df_drop.to_string(index=False))
 
     last_date = df_drop.iloc[0]["date"]
@@ -109,7 +109,7 @@ if drop_candidates:
             result_id=result_id
         )
 
-    print(f"\n⚡ TXT 생성 완료 → {result_id}, ROWCOUNT = {len(df_drop)}\n")
+    print(f"\nTXT 생성 완료 {result_id}, ROWCOUNT = {len(df_drop)}\n")
 
 else:
-    print("\n전일 대비 7% 이상 하락 종목 없음 — 저장 생략\n")
+    print("\n전일 대비 5% 이상 하락 종목 없음 저장 생략\n")

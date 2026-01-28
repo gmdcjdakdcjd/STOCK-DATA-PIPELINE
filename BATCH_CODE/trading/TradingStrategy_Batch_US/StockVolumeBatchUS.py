@@ -19,7 +19,7 @@ from BATCH_CODE.trading.txt_saver_us import (
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 
 # -----------------------------
-# 1️⃣ 기본 세팅
+# 1. 기본 세팅
 # -----------------------------
 mk = MarketDB()
 company = mk.get_comp_info_optimization()
@@ -40,7 +40,7 @@ volume_candidates = []
 df_all = mk.get_all_daily_prices(start_date, latest_trade_date)
 
 if df_all.empty:
-    print("⚠ 전체 가격 데이터 없음")
+    print("전체 가격 데이터 없음")
     exit()
 
 df_all["date"] = pd.to_datetime(df_all["date"])
@@ -59,6 +59,9 @@ for code, group in df_all.groupby("code"):
 
     prev = group.iloc[-2]
     last = group.iloc[-1]
+
+    if pd.isna(last["volume"]) or last["volume"] == 0:
+        continue
 
     rate = ((last["close"] - prev["close"]) / prev["close"]) * 100
 
@@ -83,7 +86,7 @@ if volume_candidates:
         .head(20)
     )
 
-    print("\n📊 [US] 일봉 거래량 TOP20 종목 리스트\n")
+    print("\n[US] 일봉 거래량 TOP20 종목 리스트\n")
     print(df_top20[["code", "name", "date", "close", "volume"]].to_string(index=False))
     print(f"\n총 {len(df_top20)}건 감지됨.\n")
 
@@ -106,11 +109,11 @@ if volume_candidates:
             price=row["close"],
             diff=row["rate"],
             volume=row["volume"],
-            special_value=rank,   # ⭐ 거래량 순위
+            special_value=rank,   # 거래량 순위
             result_id=result_id
         )
 
-    print(f"\n⚡ TXT 생성 완료 → RESULT_ID = {result_id}, ROWCOUNT = {len(df_top20)}\n")
+    print(f"\nTXT 생성 완료 → RESULT_ID = {result_id}, ROWCOUNT = {len(df_top20)}\n")
 
 else:
-    print("\n😴 거래량 TOP20 없음 — 저장 생략\n")
+    print("\n거래량 TOP20 없음 — 저장 생략\n")

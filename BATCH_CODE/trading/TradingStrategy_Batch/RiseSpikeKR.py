@@ -39,11 +39,13 @@ strategy_name = "DAILY_RISE_SPIKE_KR"
 df_all = mk.get_all_daily_prices(start_date, today_str)
 
 if df_all.empty:
-    print("\n⚠ 전체 가격 데이터 없음 — 종료")
+    print("\n전체 가격 데이터 없음 — 종료")
     exit()
 
 # 종목 필터링
 df_all = df_all[df_all["code"].isin(stocks)]
+df_all["date"] = pd.to_datetime(df_all["date"], errors="coerce")
+df_all = df_all.dropna(subset=["date"])
 df_all = df_all.sort_values(["code", "date"])
 
 rise_candidates = []
@@ -61,10 +63,13 @@ for code, group in df_all.groupby("code"):
     prev = group.iloc[-2]      # 어제
     last = group.iloc[-1]      # 오늘
 
+    if pd.isna(last["volume"]) or last["volume"] <= 0:
+        continue
+
     rate = ((last["close"] - prev["close"]) / prev["close"]) * 100
 
     # 조건: 전일 대비 +7% AND 종가 10,000 이상
-    if rate >= 7 and last["close"] >= 10000:
+    if rate >= 5 and last["close"] >= 10000:
 
         rise_candidates.append({
             "code": code,
@@ -84,7 +89,7 @@ if rise_candidates:
 
     df_rise = pd.DataFrame(rise_candidates).sort_values(by="rate", ascending=False)
 
-    print("\n[일봉] 전일 대비 7% 이상 상승 종목 목록\n")
+    print("\n[일봉] 전일 대비 5% 이상 상승 종목 목록\n")
     print(df_rise.to_string(index=False))
     print(f"\n총 {len(df_rise)}건 감지됨.\n")
 
@@ -113,9 +118,9 @@ if rise_candidates:
             result_id=result_id
         )
 
-    print("\n⚡ TXT 저장 완료")
+    print("\nTXT 저장 완료")
     print(f"RESULT_ID = {result_id}")
     print(f"ROWCOUNT  = {len(df_rise)}\n")
 
 else:
-    print("\n전일 대비 7% 이상 상승 종목 없음 — 저장 생략\n")
+    print("\n전일 대비 5% 이상 상승 종목 없음 — 저장 생략\n")

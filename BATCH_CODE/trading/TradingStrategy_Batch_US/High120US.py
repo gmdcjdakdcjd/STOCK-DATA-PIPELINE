@@ -40,7 +40,7 @@ strategy_name = "DAILY_120D_NEW_HIGH_US"
 df_all = mk.get_all_daily_prices(start_date, latest_trade_date)
 
 if df_all.empty:
-    print("\n⚠ 전체 가격 데이터 없음 — 종료")
+    print("\n전체 가격 데이터 없음 — 종료")
     exit()
 
 df_all["date"] = pd.to_datetime(df_all["date"])
@@ -66,9 +66,9 @@ for code, group in df_all.groupby("code"):
     last = df.iloc[-1]
 
     if (
-        last["close"] >= 10
-        and last["close"] >= last["HIGH_120_CLOSE"]
-        and prev["close"] < prev["HIGH_120_CLOSE"]
+            last["close"] == last["HIGH_120_CLOSE"]
+            and prev["close"] < prev["HIGH_120_CLOSE"]
+            and last["close"] >= 15
     ):
         diff = round(((last["close"] - prev["close"]) / prev["close"]) * 100, 2)
 
@@ -89,7 +89,7 @@ for code, group in df_all.groupby("code"):
 if high_list:
 
     df_high = pd.DataFrame(high_list).sort_values(by="close", ascending=False)
-    print("\n🚀 [US] 120일 종가 신고가 ‘첫 발생’ 종목\n")
+    print("\n[US] 120일 종가 신고가 ‘첫 발생’ 종목\n")
     print(df_high.to_string(index=False))
     print(f"\n총 {len(df_high)}건 감지됨.\n")
 
@@ -116,7 +116,7 @@ if high_list:
             result_id=result_id
         )
 
-    print(f"\n⚡ TXT 생성 완료 → RESULT_ID = {result_id}, ROWCOUNT = {len(df_high)}\n")
+    print(f"\nTXT 생성 완료 → RESULT_ID = {result_id}, ROWCOUNT = {len(df_high)}\n")
 
 else:
-    print("\n😴 120일 종가 신고가 ‘첫 발생’ 종목 없음 — 저장 생략\n")
+    print("\n120일 종가 신고가 ‘첫 발생’ 종목 없음 — 저장 생략\n")

@@ -56,7 +56,7 @@ def compute_rsi(series, period=14):
 df_all = mk.get_all_daily_prices(start_date, today_str)
 
 if df_all.empty:
-    print("⚠ 전체 가격 데이터 없음")
+    print("전체 가격 데이터 없음")
     exit()
 
 # 여기서 date 처리 + index 세팅 (중요)
@@ -90,7 +90,12 @@ for code, group in df_all.groupby("code"):
     diff = round(((last["close"] - prev["close"]) / prev["close"]) * 100, 2)
 
     # 조건: RSI 70 이상 + 종가 ≥ 10,000
-    if last["rsi"] >= 70 and last["close"] >= 10000:
+    if (
+            last["rsi"] >= 70 and
+            last["close"] >= 10000 and
+            not pd.isna(last["volume"]) and
+            last["volume"] > 0
+    ):
         rsi_candidates.append({
             "code": code,
             "name": mk.codes.get(code, "UNKNOWN"),

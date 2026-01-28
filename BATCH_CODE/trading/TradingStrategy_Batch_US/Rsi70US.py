@@ -55,7 +55,7 @@ def compute_rsi(series, period=14):
 df_all = mk.get_all_daily_prices(start_date, latest_trade_date)
 
 if df_all.empty:
-    print("⚠ 전체 가격 데이터 없음")
+    print("전체 가격 데이터 없음")
     exit()
 
 df_all["date"] = pd.to_datetime(df_all["date"])
@@ -84,7 +84,7 @@ for code, group in df_all.groupby("code"):
     diff = ((last["close"] - prev["close"]) / prev["close"]) * 100
 
     # 조건: RSI ≥ 70 + 종가 ≥ $10
-    if last["rsi"] >= 70 and last["close"] >= 10:
+    if last["rsi"] >= 70 and last["close"] >= 15:
         rsi_list.append({
             "code": code,
             "name": mk.code_to_name.get(code, "UNKNOWN"),
@@ -102,7 +102,7 @@ for code, group in df_all.groupby("code"):
 if rsi_list:
 
     df_rsi = pd.DataFrame(rsi_list).sort_values(by="special_value", ascending=False)
-    print("\n📈 [US] RSI 70 이상 과열 종목 (종가 ≥ $10)\n")
+    print("\n[US] RSI 70 이상 과열 종목 (종가 ≥ $10)\n")
     print(df_rsi.to_string(index=False))
     print(f"\n총 {len(df_rsi)}건 감지됨.\n")
 
@@ -129,7 +129,7 @@ if rsi_list:
             result_id=result_id
         )
 
-    print(f"\n⚡ TXT 생성 완료 → RESULT_ID = {result_id}, ROWCOUNT = {len(df_rsi)}\n")
+    print(f"\nTXT 생성 완료 → RESULT_ID = {result_id}, ROWCOUNT = {len(df_rsi)}\n")
 
 else:
-    print("\n💤 RSI 70 이상 과열 종목 없음 — 저장 생략\n")
+    print("\nRSI 70 이상 과열 종목 없음 — 저장 생략\n")

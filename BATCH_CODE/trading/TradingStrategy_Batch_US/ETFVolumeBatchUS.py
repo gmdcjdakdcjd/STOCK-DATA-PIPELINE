@@ -38,7 +38,7 @@ latest_trade_date = mk.get_latest_date(today_str)
 df_all = mk.get_all_daily_prices(start_date, latest_trade_date)
 
 if df_all.empty:
-    print("\n⚠ 전체 ETF 가격 데이터 없음 — 종료")
+    print("\n전체 ETF 가격 데이터 없음 — 종료")
     exit()
 
 df_all["date"] = pd.to_datetime(df_all["date"])
@@ -86,7 +86,7 @@ if volume_list:
         .head(20)
     )
 
-    print("\n📊 [미국 ETF] 거래량 TOP20 리스트\n")
+    print("\n[미국 ETF] 거래량 TOP20 리스트\n")
     print(df_top20.to_string(index=False))
     print(f"\n총 {len(df_top20)}건 감지됨.\n")
 
@@ -113,7 +113,7 @@ if volume_list:
             result_id=result_id
         )
 
-    print(f"\n⚡ TXT 생성 완료 → RESULT_ID = {result_id}, ROWCOUNT = {len(df_top20)}\n")
+    print(f"\nTXT 생성 완료 → RESULT_ID = {result_id}, ROWCOUNT = {len(df_top20)}\n")
 
 else:
-    print("\n💤 미국 ETF 거래량 TOP20 없음 — 저장 생략\n")
+    print("\n미국 ETF 거래량 TOP20 없음 — 저장 생략\n")

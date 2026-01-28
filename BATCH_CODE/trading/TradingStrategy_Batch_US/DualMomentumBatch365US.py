@@ -33,7 +33,7 @@ class DualMomentumBatchUS1Y:
     def adjust_date(self, date_str):
         latest = self.mk.get_latest_date(date_str)
         if latest is None:
-            print(f"⚠ 거래일 없음: {date_str}")
+            print(f"거래일 없음: {date_str}")
         return latest
 
     # -------------------------------------------------
@@ -42,9 +42,10 @@ class DualMomentumBatchUS1Y:
     def calculate_returns(self, start_date, end_date):
 
         df_all = self.mk.get_all_daily_prices(start_date, end_date)
+        df_all = df_all[df_all["code"].isin(self.mk.code_to_name)]
 
         if df_all.empty:
-            print("⚠ 전체 가격 데이터 없음")
+            print("전체 가격 데이터 없음")
             return pd.DataFrame()
 
         pivot = df_all.pivot(index="date", columns="code", values="close")
@@ -79,10 +80,10 @@ class DualMomentumBatchUS1Y:
         end_date = self.adjust_date(end_date)
 
         if not start_date or not end_date:
-            print("❌ 날짜 보정 실패 → 종료")
+            print("날짜 보정 실패 → 종료")
             return
 
-        print(f"\n⚡ [DUAL MOMENTUM 1Y US] ({start_date} ~ {end_date})\n")
+        print(f"\n[DUAL MOMENTUM 1Y US] ({start_date} ~ {end_date})\n")
 
         df = self.calculate_returns(start_date, end_date)
 
@@ -131,7 +132,7 @@ class DualMomentumBatchUS1Y:
                 result_id=result_id
             )
 
-        print(f"⚡ TXT 생성 완료 → RESULT_ID={result_id}, ROWCOUNT={len(df_final)}\n")
+        print(f"TXT 생성 완료 → RESULT_ID={result_id}, ROWCOUNT={len(df_final)}\n")
 
 
 # ================= 실행 =================

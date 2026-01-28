@@ -8,7 +8,7 @@ sys.path.append(str(PROJECT_ROOT))
 # ===== 기존 import =====
 import pandas as pd
 import warnings
-from datetime import datetime, timedelta
+from datetime import datetime
 import numpy as np
 
 from API.AnalyzeKR import MarketDB
@@ -45,24 +45,24 @@ if df_all.empty:
     print("전체 가격 데이터 없음")
     exit()
 
-# date 정리 + index 통일 (모든 전략 공통)
-df_all = df_all[df_all["code"].isin(stocks)]
-df_all["date"] = pd.to_datetime(df_all["date"], errors="coerce")
+# --- 공통 전처리 (여기서 딱 1번) ---
 df_all = (
-    df_all
+    df_all[df_all["code"].isin(stocks)]
+    .assign(date=lambda x: pd.to_datetime(x["date"], errors="coerce"))
     .dropna(subset=["date"])
     .sort_values(["code", "date"])
     .set_index("date")
 )
 
 # =======================================================
-# 3. 그룹별 볼린저 상단 계산
+# 3. 종목별 볼린저 상단 터치 계산
 # =======================================================
 for code, group in df_all.groupby("code"):
 
     if len(group) < 20:
         continue
 
+    # 볼린저 밴드 (20)
     ma20 = group["close"].rolling(20).mean()
     std = group["close"].rolling(20).std()
     upper = ma20 + (std * 2)
@@ -73,6 +73,10 @@ for code, group in df_all.groupby("code"):
     prev = group.iloc[-2]
     last = group.iloc[-1]
 
+    # 🔑 거래량 0 종목 완전 제외
+    if pd.isna(last["volume"]) or last["volume"] <= 0:
+        continue
+
     close_price = last["close"]
     upper_band = upper.iloc[-1]
 
@@ -80,7 +84,10 @@ for code, group in df_all.groupby("code"):
     gap_rate = ((close_price - upper_band) / upper_band) * 100
 
     # 조건: 상단 ±1% + 종가 10,000 이상
-    if -1.0 <= gap_rate <= 1.0 and close_price >= 10000:
+    if (
+        -1.0 <= gap_rate <= 1.0
+        and close_price >= 10000
+    ):
         touch_candidates.append({
             "code": code,
             "name": mk.codes.get(code, "UNKNOWN"),
@@ -88,8 +95,8 @@ for code, group in df_all.groupby("code"):
             "close": float(close_price),
             "prev_close": float(prev["close"]),
             "diff": diff,
-            "volume": float(last.get("volume", 0)),
-            "special_value": round(float(upper_band), 2)  # 상단선
+            "volume": float(last["volume"]),
+            "special_value": round(float(upper_band), 2)  # BB 상단
         })
 
 # =======================================================
@@ -97,7 +104,9 @@ for code, group in df_all.groupby("code"):
 # =======================================================
 if touch_candidates:
 
-    df_touch = pd.DataFrame(touch_candidates).sort_values(by="diff", ascending=False)
+    df_touch = pd.DataFrame(touch_candidates).sort_values(
+        by="diff", ascending=False
+    )
 
     print("\n[일봉] 볼린저 상단 터치 종목 (±1%)\n")
     print(df_touch.to_string(index=False))

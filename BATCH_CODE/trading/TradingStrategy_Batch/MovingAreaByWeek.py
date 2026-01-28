@@ -8,7 +8,7 @@ sys.path.append(str(PROJECT_ROOT))
 # ===== 기존 import =====
 import pandas as pd
 import warnings
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from API.AnalyzeKR import MarketDB
 from BATCH_CODE.trading.txt_saver_kr import (
@@ -42,23 +42,25 @@ if df_all.empty:
     print("\n전체 가격 데이터 없음 — 종료")
     exit()
 
-df_all = df_all[df_all["code"].isin(stocks)]
-df_all = df_all.sort_values(["code", "date"])
+# ---- 날짜 처리 & 필터링 (여기서 1번만) ----
+df_all = (
+    df_all[df_all["code"].isin(stocks)]
+    .assign(date=lambda x: pd.to_datetime(x["date"], errors="coerce"))
+    .dropna(subset=["date"])
+    .sort_values(["code", "date"])
+    .set_index("date")
+)
 
 # =======================================================
 # 3. 종목별 주봉 + MA60 터치 계산
 # =======================================================
 for code, group in df_all.groupby("code"):
 
-    group["date"] = pd.to_datetime(group["date"], errors="coerce")
-    group = group.dropna(subset=["date"])
-    group = group.set_index("date").sort_index()
-
     # --- 일봉 → 주봉 변환 ---
     weekly = pd.DataFrame({
         "open": group["open"].resample("W-SAT").first(),
         "high": group["high"].resample("W-SAT").max(),
-        "low": group["low"].resample("W-SAT").min(),
+        "low":  group["low"].resample("W-SAT").min(),
         "close": group["close"].resample("W-SAT").last(),
         "volume": group["volume"].resample("W-SAT").sum(),
     }).dropna()
@@ -67,7 +69,7 @@ for code, group in df_all.groupby("code"):
         continue
 
     # --- 60주 이동평균 ---
-    weekly["MA60"] = weekly["close"].rolling(window=60).mean()
+    weekly["MA60"] = weekly["close"].rolling(60, min_periods=60).mean()
 
     prev = weekly.iloc[-2]   # 지난 주
     last = weekly.iloc[-1]   # 이번 주
@@ -78,7 +80,7 @@ for code, group in df_all.groupby("code"):
     # --- 주간 등락률 ---
     diff = round(((last["close"] - prev["close"]) / prev["close"]) * 100, 2)
 
-    # --- MA60 터치율 (핵심) ---
+    # --- MA60 터치율 ---
     touch_rate = ((last["close"] - prev["MA60"]) / prev["MA60"]) * 100
 
     # --- 진짜 60주선 터치 조건 ---

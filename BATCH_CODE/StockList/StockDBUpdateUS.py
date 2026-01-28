@@ -78,7 +78,7 @@ class UsDailyPriceBatchOut:
     def read_yfinance(self, code):
         df = yf.download(
             code,
-            period="3d",
+            period="2y",
             interval="1d",
             auto_adjust=True,
             progress=False

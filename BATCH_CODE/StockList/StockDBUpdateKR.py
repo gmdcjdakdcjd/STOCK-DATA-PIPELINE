@@ -125,7 +125,13 @@ class DBUpdater:
             df["date"] = pd.to_datetime(df["date"], errors="coerce").dt.strftime("%Y-%m-%d")
             df = df.dropna(subset=["date"])
 
-            df["diff"] = df["diff"].astype(str).str.extract(r"(\d+)")
+            df["diff"] = (
+                df["diff"]
+                .astype(str)
+                .str.replace(",", "", regex=False)
+                .str.extract(r"(\d+)")
+                .astype(int)
+            )
             df = df.dropna()
 
             df[["close", "diff", "open", "high", "low", "volume"]] = df[

@@ -42,7 +42,7 @@ touch_candidates = []
 df_all = mk.get_all_daily_prices(start_date, today_str)
 
 if df_all.empty:
-    print("⚠ 전체 가격 데이터 없음")
+    print("전체 가격 데이터 없음")
     exit()
 
 # date 정리 + index 세팅 (모든 전략 공통)
@@ -82,9 +82,11 @@ for code, group in df_all.groupby("code"):
 
     # 조건
     if (
-        -0.5 <= gap_rate <= 0.5
-        and close_price >= 10000
-        and close_price >= lower_band * 0.995
+            -0.5 <= gap_rate <= 0.5
+            and close_price >= 10000
+            and close_price >= lower_band * 0.995
+            and not pd.isna(last["volume"])
+            and last["volume"] > 0
     ):
         touch_candidates.append({
             "code": code,

@@ -14,7 +14,7 @@ import os
 import requests
 from datetime import datetime
 
-from BATCH_CODE.common import config   # 🔥 ENV 로딩 트리거
+from BATCH_CODE.common import config   # ENV 로딩 트리거
 
 # =====================================================
 # ENV
@@ -194,7 +194,7 @@ def run():
         print(f"[OK] page {page} TXT 생성 완료")
         page += 1
 
-    print("🎉 KODEX ETF Batch-Out 완료")
+    print("KODEX ETF Batch-Out 완료")
 
 
 if __name__ == "__main__":

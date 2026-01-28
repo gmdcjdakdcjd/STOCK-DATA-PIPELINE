@@ -25,17 +25,7 @@ class MarketDB:
         self.get_comp_info()
 
     def get_comp_info(self):
-        """
-        기존 MariaDB 기반 코드 (주석 처리)
-        """
-
-        sql = text("""
-            SELECT code, name
-            FROM company_info_kr
-            WHERE stock_type = '보통주'
-        """)
-        with self.engine.connect() as conn:
-            df = pd.read_sql(sql, conn)
+        df = self.get_comp_info_optimization()
 
         if df.empty:
             print("company_info_kr 데이터 없음")
@@ -119,12 +109,24 @@ class MarketDB:
     def get_comp_info_optimization(self):
         """
         종목코드/이름을 DataFrame 형태로 반환 (MariaDB)
+        - 최신 거래일 volume = 0 인 종목 제외
         """
         try:
             sql = text("""
-                SELECT code, name
-                FROM company_info_kr
-                WHERE stock_type = '보통주'
+                SELECT ci.code, ci.name
+                FROM company_info_kr ci
+                WHERE ci.stock_type = '보통주'
+                  AND EXISTS (
+                      SELECT 1
+                      FROM daily_price_kr dp
+                      WHERE dp.code = ci.code
+                        AND dp.volume > 0
+                        AND dp.date = (
+                            SELECT MAX(date)
+                            FROM daily_price_kr
+                            WHERE code = ci.code
+                        )
+                  )
             """)
 
             with self.engine.connect() as conn:

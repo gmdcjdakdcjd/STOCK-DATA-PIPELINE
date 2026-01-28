@@ -37,13 +37,13 @@ strategy_name = "WEEKLY_52W_NEW_LOW_KR"
 # 2. MariaDB 전체 일봉 1회 조회
 # =======================================================
 df_all = mk.get_all_daily_prices(start_date, today_str)
+df_all = df_all[df_all["code"].isin(stocks)]
 
 if df_all.empty:
     print("\n전체 가격 데이터 없음 — 종료")
     exit()
 
 # date 처리 + index 세팅은 여기서 1번만
-df_all = df_all[df_all["code"].isin(stocks)]
 df_all["date"] = pd.to_datetime(df_all["date"], errors="coerce")
 df_all = (
     df_all
@@ -79,7 +79,11 @@ for code, group in df_all.groupby("code"):
     last = weekly.iloc[-1]
 
     # 조건: 종가가 52주 최저치 첫 도달 + 종가 >= 10000
-    if last["LOW_52_CLOSE"] >= last["close"] >= 10000:
+    # 여기 추가
+    prev_low = weekly["LOW_52_CLOSE"].iloc[-2]
+
+    # 조건 교체
+    if last["LOW_52_CLOSE"] >= last["close"] >= 10000 and prev["close"] > prev_low:
 
         diff = round(((last["close"] - prev["close"]) / prev["close"]) * 100, 2)
 
@@ -130,9 +134,10 @@ if low_candidates:
             result_id=result_id
         )
 
+
     print("\nTXT 저장 완료")
     print(f"RESULT_ID = {result_id}")
     print(f"ROWCOUNT  = {len(df_low)}\n")
 
 else:
-    print("\n😴 52주 신저가 종목 없음 — 저장 생략\n")
+    print("\n52주 신저가 종목 없음 — 저장 생략\n")

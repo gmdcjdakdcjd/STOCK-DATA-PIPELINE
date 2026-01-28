@@ -39,7 +39,7 @@ strategy_name = "DAILY_RISE_SPIKE_US"
 df_all = mk.get_all_daily_prices(start_date, latest_trade_date)
 
 if df_all.empty:
-    print("\n⚠ 전체 가격 데이터 없음 — 종료")
+    print("\n전체 가격 데이터 없음 — 종료")
     exit()
 
 df_all = df_all[df_all["code"].isin(stocks)]
@@ -61,7 +61,7 @@ for code, group in df_all.groupby("code"):
     rate = ((last["close"] - prev["close"]) / prev["close"]) * 100
 
     # 조건: 전일 대비 +7% AND 종가 ≥ $10
-    if rate >= 7 and last["close"] >= 10:
+    if rate >= 5 and last["close"] >= 15:
         rise_candidates.append({
             "code": code,
             "name": mk.code_to_name.get(code, "UNKNOWN"),
@@ -79,7 +79,7 @@ if rise_candidates:
 
     df_rise = pd.DataFrame(rise_candidates).sort_values(by="rate", ascending=False)
 
-    print("\n📈 [미국] 전일 대비 7% 이상 상승 종목 목록\n")
+    print("\n[미국] 전일 대비 7% 이상 상승 종목 목록\n")
     print(df_rise.to_string(index=False))
     print(f"\n총 {len(df_rise)}건 감지됨.\n")
 
@@ -106,7 +106,7 @@ if rise_candidates:
             result_id=result_id
         )
 
-    print(f"\n⚡ TXT 생성 완료 → RESULT_ID = {result_id}, ROWCOUNT = {len(df_rise)}\n")
+    print(f"\nTXT 생성 완료 RESULT_ID = {result_id}, ROWCOUNT = {len(df_rise)}\n")
 
 else:
-    print("\n😴 전일 대비 7% 이상 상승 종목 없음 — 저장 생략\n")
+    print("\n전일 대비 7% 이상 상승 종목 없음 저장 생략\n")

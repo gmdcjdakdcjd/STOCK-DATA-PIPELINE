@@ -37,6 +37,7 @@ strategy_name = "WEEKLY_52W_NEW_HIGH_KR"
 # 2. MariaDB 전체 일봉 1회 조회
 # =======================================================
 df_all = mk.get_all_daily_prices(start_date, today_str)
+df_all = df_all[df_all["code"].isin(stocks)]
 
 if df_all.empty:
     print("\n전체 가격 데이터 없음 — 종료")
@@ -102,7 +103,7 @@ if weekly_candidates:
         by="close", ascending=False
     )
 
-    print("\n[주봉] 52주 신고가 ‘첫 발생’ 종목\n")
+    print("\n[주봉] 52주 신고가 '첫 발생' 종목\n")
     print(df_weekly.to_string(index=False))
     print(f"\n총 {len(df_weekly)}건 감지됨.\n")
 
@@ -131,9 +132,9 @@ if weekly_candidates:
             result_id=result_id
         )
 
-    print("\n⚡ TXT 저장 완료")
+    print("\nTXT 저장 완료")
     print(f"RESULT_ID = {result_id}")
     print(f"ROWCOUNT  = {len(df_weekly)}\n")
 
 else:
-    print("\n주봉 52주 신고가 ‘첫 발생’ 종목 없음 — 저장 생략\n")
+    print("\n주봉 52주 신고가 '첫 발생' 종목 없음 — 저장 생략\n")

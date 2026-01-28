@@ -31,16 +31,10 @@ class MarketDB:
     # 미국 종목 기본 정보 로딩
     # =====================================================================
     def get_comp_info(self):
-        sql = text("""
-            SELECT code, name
-            FROM company_info_us
-        """)
-
-        with self.engine.connect() as conn:
-            df = pd.read_sql(sql, conn)
+        df = self.get_comp_info_optimization()
 
         if df.empty:
-            print("⚠ company_info_us 데이터 없음")
+            print("company_info_us 데이터 없음")
             return
 
         self.code_to_name = dict(zip(df["code"], df["name"]))
@@ -120,9 +114,20 @@ class MarketDB:
         """
         try:
             sql = text("""
-                SELECT code, name
-                FROM company_info_us
-               """)
+                SELECT ci.code, ci.name
+                FROM company_info_us ci
+                WHERE EXISTS (
+                      SELECT 1
+                      FROM daily_price_us dp
+                      WHERE dp.code = ci.code
+                        AND dp.volume > 0
+                        AND dp.date = (
+                            SELECT MAX(date)
+                            FROM daily_price_us
+                            WHERE code = ci.code
+                        )
+                  )
+            """)
 
             with self.engine.connect() as conn:
                 df = pd.read_sql(sql, conn)

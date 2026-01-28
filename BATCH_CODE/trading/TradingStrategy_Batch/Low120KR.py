@@ -37,13 +37,13 @@ strategy_name = "DAILY_120D_NEW_LOW_KR"
 # 2. 전체 일봉 1회 조회
 # =======================================================
 df_all = mk.get_all_daily_prices(start_date, today_str)
+df_all = df_all[df_all["code"].isin(stocks)]
 
 if df_all.empty:
-    print("\n⚠ 전체 가격 데이터 없음 — 종료")
+    print("\n전체 가격 데이터 없음 종료")
     exit()
 
 # date 처리 + index 세팅은 여기서 한 번만
-df_all = df_all[df_all["code"].isin(stocks)]
 df_all["date"] = pd.to_datetime(df_all["date"], errors="coerce")
 df_all = (
     df_all
@@ -62,7 +62,7 @@ for code, group in df_all.groupby("code"):
     if len(group) < 120:
         continue
 
-    group["LOW_120_CLOSE"] = group["close"].rolling(120).min()
+    group["LOW_120_CLOSE"] = group["close"].rolling(120, min_periods=120).min()
 
     prev = group.iloc[-2]
     last = group.iloc[-1]
@@ -92,7 +92,7 @@ if low_candidates:
 
     df_low = pd.DataFrame(low_candidates).sort_values(by="close", ascending=True)
 
-    print("\n[일봉] 120일 종가 신저가 ‘첫 발생’ 종목\n")
+    print("\n[일봉] 120일 종가 신저가 '첫 발생' 종목\n")
     print(df_low.to_string(index=False))
     print(f"\n총 {len(df_low)}건 감지됨.\n")
 
@@ -126,4 +126,4 @@ if low_candidates:
     print(f"ROWCOUNT  = {len(df_low)}\n")
 
 else:
-    print("\n120일 종가 신저가 발생 종목 없음 — 저장 생략\n")
+    print("\n120일 종가 신저가 발생 종목 없음 저장 생략\n")

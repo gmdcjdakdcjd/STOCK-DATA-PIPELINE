@@ -39,7 +39,7 @@ strategy_name = "DAILY_BB_UPPER_TOUCH_US"
 df_all = mk.get_all_daily_prices(start_date, latest_trade_date)
 
 if df_all.empty:
-    print("\n⚠ 전체 가격 데이터 없음 — 종료")
+    print("\n전체 가격 데이터 없음 — 종료")
     exit()
 
 df_all["date"] = pd.to_datetime(df_all["date"])
@@ -70,8 +70,12 @@ for code, group in df_all.groupby("code"):
     upper_band = last["upper"]
     close_price = last["close"]
 
+    if pd.isna(last["volume"]) or last["volume"] == 0:
+        continue
+
     if pd.isna(upper_band):
         continue
+
 
     diff = round(((close_price - prev["close"]) / prev["close"]) * 100, 2)
     gap_rate = ((close_price - upper_band) / upper_band) * 100
@@ -95,7 +99,7 @@ for code, group in df_all.groupby("code"):
 if touch_list:
 
     df_touch = pd.DataFrame(touch_list).sort_values(by="diff", ascending=False)
-    print("\n📈 [US] 일봉 볼린저 상단선 터치 종목 리스트\n")
+    print("\n[US] 일봉 볼린저 상단선 터치 종목 리스트\n")
     print(df_touch.to_string(index=False))
     print(f"\n총 {len(df_touch)}건 감지됨.\n")
 
@@ -122,7 +126,7 @@ if touch_list:
             result_id=result_id
         )
 
-    print(f"\n⚡ TXT 생성 완료 → RESULT_ID = {result_id}, ROWCOUNT = {len(df_touch)}\n")
+    print(f"\nTXT 생성 완료 → RESULT_ID = {result_id}, ROWCOUNT = {len(df_touch)}\n")
 
 else:
-    print("\n💤 [US] 볼린저 상단 터치 종목 없음 — 저장 생략\n")
+    print("\n[US] 볼린저 상단 터치 종목 없음 — 저장 생략\n")

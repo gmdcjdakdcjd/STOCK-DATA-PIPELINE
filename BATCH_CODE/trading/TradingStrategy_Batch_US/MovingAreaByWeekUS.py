@@ -87,7 +87,7 @@ for code, group in df_all.groupby("code"):
     touch_rate = ((last["close"] - prev["MA60"]) / prev["MA60"]) * 100
 
     # --- 진짜 60주선 터치 조건 ---
-    if -1.0 <= touch_rate <= 1.0 and last["close"] >= 10:
+    if -1.0 <= touch_rate <= 1.0 and last["close"] >= 15:
 
         touch_list.append({
             "code": code,
@@ -113,10 +113,11 @@ if touch_list:
 
     today = datetime.now().strftime("%Y%m%d")
     result_id = f"{today}_{strategy_name}"
+    weekly_signal_date = df_touch.iloc[0]["date"]  # 주봉 날짜
 
     save_strategy_result(
         strategy_name=strategy_name,
-        signal_date=latest_trade_date,
+        signal_date=weekly_signal_date,
         total_data=len(df_touch)
     )
 

@@ -40,11 +40,14 @@ volume_candidates = []
 df_all = mk.get_all_daily_prices(start_date, today_str)
 
 if df_all.empty:
-    print("⚠ 전체 가격 데이터 없음")
+    print("전체 가격 데이터 없음")
     exit()
 
 df_all = df_all[df_all["code"].isin(stocks)]
+df_all["date"] = pd.to_datetime(df_all["date"], errors="coerce")
+df_all = df_all.dropna(subset=["date"])
 df_all = df_all.sort_values(["code", "date"])
+
 
 # =======================================================
 # 3. 종목별 어제/오늘 비교
@@ -53,13 +56,13 @@ for code, group in df_all.groupby("code"):
 
     if len(group) < 2:
         continue
-
-    group["date"] = pd.to_datetime(group["date"], errors="coerce")
-    group = group.dropna(subset=["date"])
     group = group.sort_values("date").set_index("date")
 
     prev = group.iloc[-2]
     last = group.iloc[-1]
+
+    if pd.isna(last["volume"]) or last["volume"] <= 0:
+        continue
 
     rate = ((last["close"] - prev["close"]) / prev["close"]) * 100
 
@@ -84,7 +87,7 @@ if volume_candidates:
         .head(20)
     )
 
-    print("\n📊 [일봉] 거래량 TOP20 종목 리스트\n")
+    print("\n[일봉] 거래량 TOP20 종목 리스트\n")
     print(df_top20[["code", "name", "date", "close", "volume"]].to_string(index=False))
     print(f"\n총 {len(df_top20)}건 감지됨.\n")
 
@@ -114,13 +117,13 @@ if volume_candidates:
             price=row["close"],
             diff=row["diff"],
             volume=row["volume"],
-            special_value=rank,        # ⭐ 거래량 순위
+            special_value=rank,        # 거래량 순위
             result_id=result_id
         )
 
-    print("\n⚡ TXT 저장 완료")
+    print("\nTXT 저장 완료")
     print(f"RESULT_ID = {result_id}")
     print(f"ROWCOUNT  = {len(df_top20)}\n")
 
 else:
-    print("\n😴 거래량 TOP20 없음 — 저장 생략\n")
+    print("\n거래량 TOP20 없음 — 저장 생략\n")

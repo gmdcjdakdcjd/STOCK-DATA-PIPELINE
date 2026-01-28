@@ -1,7 +1,7 @@
 import sys
 from pathlib import Path
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]  # /workspace
+PROJECT_ROOT = Path(__file__).resolve().parents[3]  # /workspace
 sys.path.insert(0, str(PROJECT_ROOT))
 
 import json
@@ -97,10 +97,10 @@ class KDQDDailyBatchOut:
 
         df = df.sort_values("date", ascending=False)
 
-        # 🔥 최신 1일만
-        #return df.head(1)
+        # 최신 1일만
+        return df.head(1)
 
-        return df.copy()
+        # return df.copy()
 
     # ---------------------------------------------------------------------
     # 3) TXT로 append

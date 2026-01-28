@@ -36,7 +36,7 @@ class DualMomentumBatch:
     def adjust_date(self, date_str):
         latest = self.mk.get_latest_date(date_str)
         if latest is None:
-            print(f"⚠ 거래일 없음: {date_str}")
+            print(f"거래일 없음: {date_str}")
             return None
         return latest
 
@@ -46,12 +46,12 @@ class DualMomentumBatch:
     def calculate_returns(self, start_date, end_date):
 
         df_all = self.mk.get_all_daily_prices(start_date, end_date)
-
+        df_all = df_all[df_all["code"].isin(self.mk.codes)]
         if df_all.empty:
-            print("⚠ 전체 가격 데이터 없음")
+            print("전체 가격 데이터 없음")
             return pd.DataFrame()
 
-        # 🔥 date 보정 (필수)
+        # date 보정 (필수)
         df_all["date"] = pd.to_datetime(df_all["date"], errors="coerce")
         df_all = df_all.dropna(subset=["date"])
 

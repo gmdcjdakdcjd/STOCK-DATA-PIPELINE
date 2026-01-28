@@ -2,7 +2,7 @@
 import sys
 from pathlib import Path
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]  # /workspace
+PROJECT_ROOT = Path(__file__).resolve().parents[3]  # /workspace
 sys.path.insert(0, str(PROJECT_ROOT))
 
 import json
@@ -117,7 +117,7 @@ class ITIDailyBatchOut:
             df = df.sort_values("date", ascending=False)
 
             # 최근 1건
-            # df = (df.sort_values("date", ascending=False).head(1))
+            df = (df.sort_values("date", ascending=False).head(1))
 
             return df.copy()
 

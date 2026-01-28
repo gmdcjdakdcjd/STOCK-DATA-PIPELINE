@@ -130,14 +130,20 @@ class EtfDailyPriceBatchOut:
             df["date"] = pd.to_datetime(df["date"], errors="coerce").dt.strftime("%Y-%m-%d")
             df = df.dropna(subset=["date"])
 
-            df["diff"] = df["diff"].astype(str).str.extract(r"(\d+)")
+            df["diff"] = (
+                df["diff"]
+                .astype(str)
+                .str.replace(",", "", regex=False)
+                .str.extract(r"(\d+)")
+                .astype(int)
+            )
             df = df.dropna()
 
             df[["close", "diff", "open", "high", "low", "volume"]] = df[
                 ["close", "diff", "open", "high", "low", "volume"]
             ].astype(int)
 
-            # 🔥 최신 1일만 사용
+            # 최신 1일만 사용
             df = df.sort_values("date", ascending=False).head(1)
 
             return df[["date", "open", "high", "low", "close", "diff", "volume"]]

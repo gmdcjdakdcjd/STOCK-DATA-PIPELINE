@@ -4,7 +4,7 @@
 import sys
 from pathlib import Path
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]  # /workspace
+PROJECT_ROOT = Path(__file__).resolve().parents[3]  # /workspace
 sys.path.insert(0, str(PROJECT_ROOT))
 
 # ============================================================
@@ -107,7 +107,7 @@ class COFFEEDailyBatchOut:
         return (
             pd.concat(frames, ignore_index=True)
               .sort_values("date", ascending=False)
-              #.head(1)
+              .head(1)
         )
 
     # -------------------------------------------------

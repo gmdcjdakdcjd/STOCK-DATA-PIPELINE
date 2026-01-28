@@ -47,9 +47,9 @@ class DualMomentumBatch:
     def calculate_returns(self, start_date, end_date):
 
         df_all = self.mk.get_all_daily_prices(start_date, end_date)
-
+        df_all = df_all[df_all["code"].isin(self.mk.codes)]
         if df_all.empty:
-            print("⚠ 전체 가격 데이터 없음")
+            print("전체 가격 데이터 없음")
             return pd.DataFrame()
 
         df_all["date"] = pd.to_datetime(df_all["date"], errors="coerce")

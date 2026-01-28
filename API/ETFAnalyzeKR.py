@@ -28,9 +28,20 @@ class MarketDB:
     # =====================================================================
     def get_etf_info(self):
         sql = text("""
-            SELECT code, name
-            FROM etf_info_kr
-            WHERE name LIKE '%KODEX%'
+            SELECT ci.code, ci.name
+            FROM etf_info_kr ci
+            WHERE ci.name LIKE '%KODEX%'
+              AND EXISTS (
+                  SELECT 1
+                  FROM etf_daily_price_kr dp
+                  WHERE dp.code = ci.code
+                    AND dp.volume > 0
+                    AND dp.date = (
+                        SELECT MAX(date)
+                        FROM etf_daily_price_kr
+                        WHERE code = ci.code
+                    )
+              )
         """)
         with self.engine.connect() as conn:
             df = pd.read_sql(sql, conn)

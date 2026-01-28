@@ -4,7 +4,8 @@ import urllib.request
 from datetime import datetime
 from pathlib import Path
 from dotenv import load_dotenv
-
+import unicodedata
+import re
 # ------------------------------------------
 # ENV 로딩 (APP_ENV 기준)
 # ------------------------------------------
@@ -17,6 +18,37 @@ if not env_file.exists():
     raise RuntimeError(f"ENV FILE NOT FOUND: {env_file}")
 
 load_dotenv(env_file)
+
+
+# ------------------------------------------------------------
+# 0. 안전한 문자열 변환
+# ------------------------------------------------------------
+def safe_str(s):
+    if s is None:
+        return ""
+    return str(s).replace("–", "-")
+
+def normalize_text(s):
+    if s is None:
+        return ""
+
+    # 1. 유니코드 정규화 (é → e + ́)
+    s = unicodedata.normalize("NFKD", str(s))
+
+    # 2. 악센트 제거
+    s = "".join(c for c in s if not unicodedata.combining(c))
+
+    # 3. 특수기호 통일
+    s = s.replace("–", "-").replace("—", "-")
+    s = s.replace("’", "'").replace("“", '"').replace("”", '"')
+
+    # 4. 허용 문자만 유지
+    s = re.sub(r"[^A-Za-z0-9\s\-\.\(\)&']", "", s)
+
+    # 5. 공백 정리
+    s = re.sub(r"\s+", " ", s).strip()
+
+    return s
 
 
 class UsSp500CodeBatchOut:
@@ -33,6 +65,7 @@ class UsSp500CodeBatchOut:
 
         self.URL = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
         self.HEADERS = {"User-Agent": "Mozilla/5.0"}
+
 
 
     # ------------------------------------------------------------
@@ -69,8 +102,11 @@ class UsSp500CodeBatchOut:
             "cik"
         ]
 
-        sp500["market"] = "S&P500"
         sp500["code"] = sp500["code"].str.replace(".", "-", regex=False)
+        sp500["name"] = sp500["name"].apply(normalize_text)
+        sp500["market"] = "S&P500"
+        sp500["sector"] = sp500["sector"].apply(normalize_text)
+        sp500["industry"] = sp500["industry"].apply(normalize_text)
 
         print(f"[INFO] 총 {len(sp500)}개 S&P500 종목 수집 완료")
         return sp500
@@ -113,12 +149,15 @@ class UsSp500CodeBatchOut:
                 f.write(self.DELIMITER.join(map(str, row)) + "\n")
 
                 tmnow = datetime.now().strftime("%Y-%m-%d %H:%M")
+
+                name = safe_str(r["name"])
+                code = safe_str(r["code"])
+
                 print(
-                    f"[{tmnow}] #{idx+1:04d} "
-                    f"{r['name']} ({r['code']}) > WRITE TXT OK"
+                    f"[{tmnow}] #{idx + 1:04d} "
+                    f"{name} ({code}) > WRITE TXT OK"
                 )
 
-        print()
         print("[OK] S&P500 COMPANY_INFO_US TXT 생성 완료")
         print(f"ROWCOUNT={len(df)}")
         print(f"OUTPUT={txt_path}")
@@ -129,6 +168,9 @@ class UsSp500CodeBatchOut:
     def execute(self):
         df = self.fetch_sp500()
         self.save_to_txt(df)
+
+
+
 
 
 if __name__ == "__main__":

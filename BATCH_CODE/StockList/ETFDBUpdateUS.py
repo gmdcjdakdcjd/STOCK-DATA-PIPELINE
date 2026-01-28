@@ -89,7 +89,7 @@ class UsEtfDailyPriceBatchOut:
         try:
             df = yf.download(
                 code,
-                period=period,
+                period=period,  # ← 여기만 임시 변경
                 interval="1d",
                 auto_adjust=True,
                 threads=False,
@@ -120,7 +120,7 @@ class UsEtfDailyPriceBatchOut:
 
             df = df[["code", "date", "open", "high", "low", "close", "volume"]]
 
-            # 🔥 최신 1일만 사용
+            # 최신 1일만 사용
             df = df.sort_values("date", ascending=False).head(1)
 
             return df
@@ -205,7 +205,7 @@ class UsEtfDailyPriceBatchOut:
         with open(self.CONFIG_PATH, "r", encoding="utf-8") as f:
             config = json.load(f)
 
-        period = config.get("period", "10d")  # 3d → 10d 권장
+        period = config.get("period", "2y")  # 3d → 10d 권장
         self.update_daily_price(period)
 
 
