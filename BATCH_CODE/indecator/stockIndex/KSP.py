@@ -14,7 +14,7 @@ from datetime import datetime
 import os
 
 from BATCH_CODE.common import config
-from BATCH_CODE.indecator.stockIndex_common_flie_saver import append_indicator_row
+from BATCH_CODE.indecator.stockIndex_asia_common_flie_saver import append_indicator_row
 
 class KSPDDailyBatchOut:
     def __init__(self):

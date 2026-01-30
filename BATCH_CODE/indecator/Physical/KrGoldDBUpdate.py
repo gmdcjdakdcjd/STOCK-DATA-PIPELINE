@@ -13,7 +13,7 @@ from datetime import datetime
 import os
 
 from BATCH_CODE.common import config
-from BATCH_CODE.indecator.physical_common_flie_saver import append_indicator_row
+from BATCH_CODE.indecator.physical_krgold_common_flie_saver import append_indicator_row
 
 class GoldKRWDailyBatchOut:
     def __init__(self):

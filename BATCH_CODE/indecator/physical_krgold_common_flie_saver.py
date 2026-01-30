@@ -38,7 +38,7 @@ def _now_kst():
 def _get_out_file():
     out_dir = BASE_OUT_DIR / _today()
     out_dir.mkdir(parents=True, exist_ok=True)
-    return out_dir / f"DAILY_PRICE_PHYSICAL_GLOBAL_{_today()}.txt"
+    return out_dir / f"DAILY_PRICE_PHYSICAL_KRGOLD_{_today()}.txt"
 
 
 def _write_header_if_needed(path: Path):
