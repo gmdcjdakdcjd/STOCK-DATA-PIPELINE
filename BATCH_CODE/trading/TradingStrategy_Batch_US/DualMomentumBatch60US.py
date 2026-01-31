@@ -127,7 +127,7 @@ class DualMomentumBatchUS3M:
                 prev_close=row["old_price"],
                 price=row["new_price"],
                 diff=row["returns"],
-                volume=None,
+                volume=0,
                 special_value=rank,
                 result_id=result_id
             )

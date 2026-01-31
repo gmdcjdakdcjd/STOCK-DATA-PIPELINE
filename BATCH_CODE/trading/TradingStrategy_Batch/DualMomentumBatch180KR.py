@@ -134,7 +134,7 @@ class DualMomentumBatch:
                 prev_close=row["prev_close"],
                 price=row["price"],
                 diff=row["diff"],
-                volume=None,
+                volume=0,
                 special_value=rank,   # 듀얼모멘텀은 순위
                 result_id=result_id
             )
