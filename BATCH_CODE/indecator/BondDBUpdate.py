@@ -1,4 +1,4 @@
-# from FinanceDataReader.investing.data import InvestingDailyReader
+from FinanceDataReader.investing.data import InvestingDailyReader
 ## 위 라이브러리에서 더이상 기존에 사용하던 TICKER로 지원안함
 ### 따라서 시장 지수, 환율, 원자제 지표로 대신 사용
 ### 결론적으로 2026.01.08 이후로 사용 안하는 코드.
@@ -6,7 +6,7 @@
 import sys
 from pathlib import Path
 
-# 🔥 여기 핵심
+# 여기 핵심
 PROJECT_ROOT = Path(__file__).resolve().parents[2]  # /workspace
 sys.path.insert(0, str(PROJECT_ROOT))
 
