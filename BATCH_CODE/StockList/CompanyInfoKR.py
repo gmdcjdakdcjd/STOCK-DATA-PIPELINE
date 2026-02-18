@@ -45,7 +45,7 @@ class MonthlyCodeBatchOut:
 
         krx = krx[[
             "표준코드", "단축코드", "한글 종목약명",
-            "시장구분", "증권구분", "주식종류"
+            "시장구분", "증권구분", "주식종류", "상장주식수"
         ]]
 
         krx = krx.rename(columns={
@@ -54,7 +54,8 @@ class MonthlyCodeBatchOut:
             "한글 종목약명": "name",
             "시장구분": "market_type",
             "증권구분": "security_type",
-            "주식종류": "stock_type"
+            "주식종류": "stock_type",
+            "상장주식수": "listed_stock_count"
         })
 
         krx["code"] = krx["code"].astype(str).str.zfill(6)
@@ -102,6 +103,7 @@ class MonthlyCodeBatchOut:
             "security_type",
             "stock_type",
             "std_code",
+            "listed_stock_count",
             "last_update"
         ]
 
