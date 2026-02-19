@@ -28,7 +28,7 @@ stocks = set(company_df["code"])
 
 print(f"\n총 {len(stocks)}개 종목 스캔 시작...\n")
 
-start_date = (pd.Timestamp.today() - pd.DateOffset(days=5)).strftime("%Y-%m-%d")
+start_date = (pd.Timestamp.today() - pd.DateOffset(days=14)).strftime("%Y-%m-%d")
 today_str = datetime.now().strftime("%Y-%m-%d")
 strategy_name = "DAILY_TOP20_VOLUME_KR"
 

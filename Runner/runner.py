@@ -22,7 +22,7 @@ if os.getenv("APP_ENV") != "docker":
     load_dotenv(BASE_DIR / ".env.local")
 
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
-LOG_DIR = os.getenv("LOG_DIR", "./logs")
+LOG_DIR = os.getenv("LOG_DIR", "./python_logs")
 
 Path(LOG_DIR).mkdir(parents=True, exist_ok=True)
 
@@ -34,7 +34,7 @@ LOG_CONFIG_PATH = Path(__file__).parent / "logging.yaml"
 with open(LOG_CONFIG_PATH, "r", encoding="utf-8") as f:
     config = yaml.safe_load(f)
 
-# 🔑 Python에서 직접 env 반영
+# Python에서 직접 env 반영
 config["handlers"]["console"]["level"] = LOG_LEVEL
 config["handlers"]["file"]["level"] = LOG_LEVEL
 config["handlers"]["file"]["filename"] = f"{LOG_DIR}/python-runner.log"

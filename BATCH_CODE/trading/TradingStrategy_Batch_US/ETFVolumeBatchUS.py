@@ -28,7 +28,7 @@ etfs = set(etf_df["code"])
 print(f"\n총 {len(etfs)}개 미국 ETF 스캔 시작...\n")
 
 strategy_name = "ETF_TOP20_VOLUME_US"
-start_date = (pd.Timestamp.today() - pd.DateOffset(days=5)).strftime("%Y-%m-%d")
+start_date = (pd.Timestamp.today() - pd.DateOffset(days=14)).strftime("%Y-%m-%d")
 today_str = datetime.now().strftime("%Y-%m-%d")
 latest_trade_date = mk.get_latest_date(today_str)
 

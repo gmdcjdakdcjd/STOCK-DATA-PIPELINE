@@ -27,7 +27,7 @@ stocks = set(company_df["code"])
 
 print(f"\n총 {len(stocks)}개 미국 종목 스캔 시작...\n")
 
-start_date = (pd.Timestamp.today() - pd.DateOffset(months=6)).strftime("%Y-%m-%d")
+start_date = (pd.Timestamp.today() - pd.DateOffset(days=14)).strftime('%Y-%m-%d')
 today_str = datetime.now().strftime("%Y-%m-%d")
 latest_trade_date = mk.get_latest_date(today_str)
 
@@ -55,8 +55,7 @@ for code, group in df_all.groupby("code"):
     if len(group) < 2:
         continue
 
-    prev = group.iloc[-2]
-    last = group.iloc[-1]
+    prev, last = group.tail(2).iloc
 
     rate = ((last["close"] - prev["close"]) / prev["close"]) * 100
 

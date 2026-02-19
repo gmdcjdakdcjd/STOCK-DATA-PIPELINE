@@ -29,7 +29,7 @@ name_map = dict(zip(etf_df["code"], etf_df["name"]))
 
 print(f"\n총 {len(etf_codes)}개 ETF 스캔 시작...\n")
 
-start_date = (pd.Timestamp.today() - pd.DateOffset(days=5)).strftime("%Y-%m-%d")
+start_date = (pd.Timestamp.today() - pd.DateOffset(days=14)).strftime("%Y-%m-%d")
 today_str = datetime.now().strftime("%Y-%m-%d")
 strategy_name = "ETF_TOP20_VOLUME_KR"
 
