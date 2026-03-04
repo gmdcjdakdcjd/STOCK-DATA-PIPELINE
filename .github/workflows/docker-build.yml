@@ -1,0 +1,35 @@
+name: Build and Push Docker Image (Python Batch)
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Docker Image
+        run: |
+          docker build -t ghcr.io/gmdcjdakdcjd/stock-python-batch:latest .
+
+      - name: Push Docker Image
+        run: |
+          docker push ghcr.io/gmdcjdakdcjd/stock-python-batch:latest
