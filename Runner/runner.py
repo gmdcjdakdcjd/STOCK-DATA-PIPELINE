@@ -135,7 +135,7 @@ def process_once():
         # 실행 이력 기록 (DB 전용 로거)
         batch_logger.log(
             job_id=batch_out_id,
-            job_name=job_code,        # 🔑 job_code == job_name
+            job_name=job_code,        # job_code == job_name
             job_info=handler_path,
             start_time=start,
             end_time=end,
