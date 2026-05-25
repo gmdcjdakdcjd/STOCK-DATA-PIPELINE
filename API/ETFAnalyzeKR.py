@@ -19,7 +19,7 @@ class MarketDB:
 
         self.codes = {}
         self.name_to_code = {}
-
+        self.etf_df = pd.DataFrame()
         # ETF 기본 정보 로딩 (KODEX)
         self.get_etf_info()
 
@@ -28,9 +28,9 @@ class MarketDB:
     # =====================================================================
     def get_etf_info(self):
         sql = text("""
-            SELECT ci.code, ci.name
+            SELECT ci.code, ci.name, ci.manager
             FROM etf_info_kr ci
-            WHERE ci.name LIKE '%KODEX%'
+            WHERE ci.manager IN ('삼성자산운용', '미래에셋자산운용')
               AND EXISTS (
                   SELECT 1
                   FROM etf_daily_price_kr dp
@@ -47,12 +47,12 @@ class MarketDB:
             df = pd.read_sql(sql, conn)
 
         if df.empty:
-            print("⚠ KODEX ETF 기본 정보 없음")
+            print("⚠ ETF 기본 정보 없음")
             return
 
         self.codes = dict(zip(df["code"], df["name"]))
         self.name_to_code = {v: k for k, v in self.codes.items()}
-
+        self.etf_df = df
     # =====================================================================
     # ETF 일별 시세 (단일 종목)
     # =====================================================================
@@ -125,12 +125,10 @@ class MarketDB:
     # 전략 스캐너용 ETF 정보
     # =====================================================================
     def get_etf_info_optimization(self):
-        if not self.codes:
+        if self.etf_df.empty:
             self.get_etf_info()
 
-        return pd.DataFrame(
-            [{"code": k, "name": v} for k, v in self.codes.items()]
-        )
+        return self.etf_df.copy()
 
     # =====================================================================
     # 날짜 보정: 기준일 이하 가장 최근 거래일

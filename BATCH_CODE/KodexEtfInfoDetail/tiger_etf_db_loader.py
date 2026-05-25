@@ -273,7 +273,7 @@ def is_skip_row(stock_code, stock_name):
 
 
 def parse_sheet(df, sheet_name):
-    etf_id = sheet_name
+    etf_id = normalize_stock_code(sheet_name)
 
     # 파일명과 TXT 분리는 실행일 기준.
     # 데이터 base_date도 엑셀 내부값 대신 실행일 기준으로 통일.

@@ -45,7 +45,15 @@ def ensure_out_dir():
 
 
 def to_int(v):
-    return int(v) if v not in (None, "", "null") else ""
+    if v in (None, "", "null"):
+        return ""
+
+    v = str(v).replace(",", "").strip()
+
+    try:
+        return int(v)
+    except ValueError:
+        return float(v)
 
 
 def to_float(v):

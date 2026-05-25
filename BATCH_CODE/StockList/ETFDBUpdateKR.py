@@ -74,12 +74,12 @@ class EtfDailyPriceBatchOut:
     # -------------------------------------------------
     def load_etf_codes(self):
         """
-        삼성자산운용(KODEX) ETF만 로드
+        삼성자산운용(KODEX), 미래에셋자산운용(TIGER)  ETF만 로드
         """
         sql = """
             SELECT code, name
             FROM etf_info_kr
-            WHERE manager = '삼성자산운용'
+            WHERE manager in ('삼성자산운용', '미래에셋자산운용')
         """
         with self.conn.cursor() as cur:
             cur.execute(sql)
@@ -87,7 +87,7 @@ class EtfDailyPriceBatchOut:
 
         self.codes = {r["code"]: r["name"] for r in rows}
 
-        print(f"[INFO] {len(self.codes)}개 ETF 로드 완료 (삼성자산운용)")
+        print(f"[INFO] {len(self.codes)}개 ETF 로드 완료 (삼성자산운용, 미래에셋자산운용)")
 
     # -------------------------------------------------
     # 네이버 ETF 일별 시세 수집
