@@ -30,6 +30,8 @@ print(f"\n총 {len(stocks)}개 미국 종목 스캔 시작...\n")
 start_date = (pd.Timestamp.today() - pd.DateOffset(years=2)).strftime("%Y-%m-%d")
 today_str = datetime.now().strftime("%Y-%m-%d")
 latest_trade_date = mk.get_latest_date(today_str)
+# RESULT_ID 등에 사용할 수 있도록 하이픈(-)이 제거된 형식의 최근 거래일 날짜를 만듭니다.
+latest_trade_date_clean = latest_trade_date.replace("-", "")
 
 strategy_name = "WEEKLY_TOUCH_MA60_US"
 
@@ -89,10 +91,12 @@ for code, group in df_all.groupby("code"):
     # --- 진짜 60주선 터치 조건 ---
     if -1.0 <= touch_rate <= 1.0 and last["close"] >= 15:
 
+        # 기존에는 주말 날짜(last.name)로 저장했으나, 매일 배치 실행에 대응하기 위해
+        # 해당 주봉을 평가한 시점의 가장 최근 거래일 날짜(latest_trade_date)로 기록합니다.
         touch_list.append({
             "code": code,
             "name": mk.code_to_name.get(code, "UNKNOWN"),
-            "date": last.name.strftime("%Y-%m-%d"),
+            "date": latest_trade_date,
             "close": float(last["close"]),
             "prev_close": float(prev["close"]),
             "diff": diff,
@@ -111,8 +115,8 @@ if touch_list:
     print(df_touch.to_string(index=False))
     print(f"\n총 {len(df_touch)}건 감지됨.\n")
 
-    today = datetime.now().strftime("%Y%m%d")
-    result_id = f"{today}_{strategy_name}"
+    # 결과 아이디(result_id) 역시 실제 배치 실행 기준 날짜가 아닌 최신 거래일 날짜 기준으로 통일하여 생성합니다.
+    result_id = f"{latest_trade_date_clean}_{strategy_name}"
     weekly_signal_date = df_touch.iloc[0]["date"]  # 주봉 날짜
 
     save_strategy_result(

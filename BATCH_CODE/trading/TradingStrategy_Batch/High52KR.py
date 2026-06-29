@@ -51,6 +51,11 @@ df_all = (
     .set_index("date")
 )
 
+# 전체 데이터 중에서 가장 최근에 거래가 이루어진 날짜를 추출합니다.
+# 주봉 계산 기준일은 매일 다르므로, 매일 배치 실행 시 이 날짜를 기준으로 결과가 저장됩니다.
+latest_trade_date = df_all.index.max().strftime("%Y-%m-%d")
+latest_trade_date_clean = df_all.index.max().strftime("%Y%m%d")
+
 weekly_candidates = []
 # =======================================================
 # 3. 종목별 주봉 변환 + 52주 신고가 계산
@@ -83,10 +88,12 @@ for code, group in df_all.groupby("code"):
         prev["close"] < prev["HIGH_52_CLOSE"] and
         last["close"] >= 10000
     ):
+        # 기존에는 주말 날짜(last.name)로 저장했으나, 매일 배치 실행에 대응하기 위해
+        # 해당 주봉을 평가한 시점의 가장 최근 거래일 날짜(latest_trade_date)로 기록합니다.
         weekly_candidates.append({
             "code": code,
             "name": mk.codes.get(code, "UNKNOWN"),
-            "date": last.name.strftime("%Y-%m-%d"),
+            "date": latest_trade_date,
             "close": float(last["close"]),
             "prev_close": float(prev["close"]),
             "volume": float(last["volume"]),
@@ -108,7 +115,8 @@ if weekly_candidates:
     print(f"\n총 {len(df_weekly)}건 감지됨.\n")
 
     last_date = df_weekly.iloc[0]["date"]
-    result_id = f"{today}_{strategy_name}"
+    # 결과 아이디(result_id) 역시 실제 배치 실행 기준 날짜가 아닌 최신 거래일 날짜 기준으로 통일하여 생성합니다.
+    result_id = f"{latest_trade_date_clean}_{strategy_name}"
 
     # STRATEGY_RESULT
     save_strategy_result(
