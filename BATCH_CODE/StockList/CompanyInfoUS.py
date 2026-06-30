@@ -3,6 +3,7 @@ import pandas as pd
 import urllib.request
 from datetime import datetime
 from pathlib import Path
+# pyrefly: ignore [missing-import]
 from dotenv import load_dotenv
 import unicodedata
 import re
@@ -27,6 +28,8 @@ def safe_str(s):
     if s is None:
         return ""
     return str(s).replace("–", "-")
+
+
 
 def normalize_text(s):
     if s is None:
@@ -75,7 +78,8 @@ class UsSp500CodeBatchOut:
         req = urllib.request.Request(self.URL, headers=self.HEADERS)
         html = urllib.request.urlopen(req).read()
 
-        tables = pd.read_html(html)
+        # CIK 컬럼을 문자열 타입으로 강제하여 앞자리 0(예: 0000731802)이 숫자형으로 변환되며 유실되는 문제를 방지합니다.
+        tables = pd.read_html(html, converters={"CIK": str})
 
         sp500 = None
         for t in tables:
@@ -107,6 +111,9 @@ class UsSp500CodeBatchOut:
         sp500["market"] = "S&P500"
         sp500["sector"] = sp500["sector"].apply(normalize_text)
         sp500["industry"] = sp500["industry"].apply(normalize_text)
+
+        # CIK 데이터를 원래 텍스트 문자열 그대로 유지하며 결측치만 제거합니다.
+        sp500["cik"] = sp500["cik"].fillna("").astype(str).str.strip()
 
         print(f"[INFO] 총 {len(sp500)}개 S&P500 종목 수집 완료")
         return sp500
